@@ -104,7 +104,7 @@ func TestEquatorGreenwichContains(t *testing.T) {
 	polygon, err := polygonFromFile("test/data/equator_greenwich.json")
 
 	if err != nil {
-		t.Errorf("error parsing polygon", err)
+		t.Errorf("error parsing polygon %v", err)
 	}
 
 	if !polygon.Contains(point1) {
@@ -153,4 +153,57 @@ func polygonFromFile(filename string) (*Polygon, error) {
 	}
 
 	return p, nil
+}
+
+func TestPolygonNotClosed(t *testing.T) {
+	points := []*Point{
+		NewPoint(0, 0), NewPoint(0, 1), //! NewPoint(1, 1), NewPoint(1, 0), if stricter rules for a closed polygon apply
+	}
+	poly := NewPolygon(points)
+	if poly.IsClosed() {
+		t.Error("Nope! The polygon is not closed!")
+	}
+}
+
+func TestPolygonClosed(t *testing.T) {
+	points := []*Point{
+		NewPoint(0, 0), NewPoint(0, 1), NewPoint(1, 1), NewPoint(1, 0), NewPoint(0, 0),
+	}
+	poly := NewPolygon(points)
+	if !poly.IsClosed() {
+		t.Error("Nope! The polygon is closed!")
+	}
+}
+
+type testPoint struct {
+	P        *Point
+	Expected bool
+}
+
+// ntp = newTestPoint
+func ntp(lat float64, lng float64, expectedOutput bool) (t testPoint) {
+	t.P = NewPoint(lat, lng)
+	t.Expected = expectedOutput
+	return t
+}
+func TestPolygonSimple(t *testing.T) {
+	// A closed polygon - however the IsClosed() does not work properly.
+	polygonPoints := []*Point{
+		NewPoint(0, 0), NewPoint(0, 1), NewPoint(1, 1), NewPoint(1, 0), NewPoint(0, 0),
+	}
+
+	testers := []testPoint{
+		ntp(0, 0, true), ntp(0.5, 0.5, true), ntp(9, 9, false), ntp(0.5, 0, true), ntp(0.2, 0.4, true), ntp(1, 0.9, true), ntp(1, 1, true), ntp(0.00000000000000000000009, 0.00000000000000000000000000000001, true),
+	}
+
+	polygon := NewPolygon(polygonPoints)
+
+	for _, q := range testers {
+		res := polygon.Contains(q.P)
+		if res != q.Expected {
+			t.Log("x: ", q.P.lat, "\ty: ", q.P.lng, "\tExpected: ", q.Expected, "\tGot: ", res)
+			t.Fail()
+		}
+	}
+
 }

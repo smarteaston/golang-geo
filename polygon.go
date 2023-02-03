@@ -32,8 +32,9 @@ func (p *Polygon) Add(point *Point) {
 
 // IsClosed returns whether or not the polygon is closed.
 // TODO:  This can obviously be improved, but for now,
-//        this should be sufficient for detecting if points
-//        are contained using the raycast algorithm.
+//
+//	this should be sufficient for detecting if points
+//	are contained using the raycast algorithm.
 func (p *Polygon) IsClosed() bool {
 	if len(p.points) < 3 {
 		return false
@@ -46,6 +47,12 @@ func (p *Polygon) IsClosed() bool {
 func (p *Polygon) Contains(point *Point) bool {
 	if !p.IsClosed() {
 		return false
+	}
+	// Look here for further options: https://github.com/kellydunn/golang-geo/pull/71#discussion_r303040014
+	for _, p := range p.points {
+		if p.lat == point.lat && p.lng == point.lng {
+			return true
+		}
 	}
 
 	start := len(p.points) - 1

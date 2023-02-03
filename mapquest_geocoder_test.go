@@ -79,14 +79,14 @@ func TestMapquestReverseGeocoderQueryStr(t *testing.T) {
 func TestMapQuestGeocodeFromRequest(t *testing.T) {
 	data, err := GetMockResponse("test/data/mapquest_geocode_success.json")
 	if err != nil {
-		t.Error("%v\n", err)
+		t.Errorf("%v\n", err)
 	}
 
 	res := []*mapQuestGeocodeResponse{}
 
 	err = json.Unmarshal(data, &res)
 	if err != nil {
-		t.Error("%v\n", err)
+		t.Errorf("%v\n", err)
 	}
 
 	if len(res) <= 0 {

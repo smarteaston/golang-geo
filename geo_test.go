@@ -3,7 +3,6 @@ package geo
 import (
 	_ "database/sql"
 	"fmt"
-	"github.com/erikstmartin/go-testdb"
 	"os"
 	"strconv"
 	"testing"
@@ -24,7 +23,7 @@ func TestPointsWithinRadiusIntegration(t *testing.T) {
 	s, sqlErr := HandleWithSQL()
 
 	if sqlErr != nil {
-		t.Error("ERROR: %s", sqlErr)
+		t.Error("ERROR: ", sqlErr)
 	}
 
 	// SFO
