@@ -9,25 +9,27 @@ import (
 // A Polygon is carved out of a 2D plane by a set of (possibly disjoint) contours.
 // It can thus contain holes, and can be self-intersecting.
 type Polygon struct {
-	points []*Point
+	points []Point
 }
 
 // NewPolygon: Creates and returns a new pointer to a Polygon
 // composed of the passed in points.  Points are
 // considered to be in order such that the last point
 // forms an edge with the first point.
-func NewPolygon(points []*Point) *Polygon {
-	return &Polygon{points: points}
+func NewPolygon(points []Point) Polygon {
+	return Polygon{points: points}
 }
 
 // Points returns the points of the current Polygon.
-func (p *Polygon) Points() []*Point {
+func (p Polygon) Points() []Point {
 	return p.points
 }
 
-// Add: Appends the passed in contour to the current Polygon.
-func (p *Polygon) Add(point *Point) {
+// Add: Appends the passed in contour to the current Polygon and returns
+// a new polygon.
+func (p Polygon) Add(point Point) Polygon {
 	p.points = append(p.points, point)
+	return p
 }
 
 // IsClosed returns whether or not the polygon is closed.
@@ -35,7 +37,7 @@ func (p *Polygon) Add(point *Point) {
 //
 //	this should be sufficient for detecting if points
 //	are contained using the raycast algorithm.
-func (p *Polygon) IsClosed() bool {
+func (p Polygon) IsClosed() bool {
 	if len(p.points) < 3 {
 		return false
 	}
@@ -44,7 +46,7 @@ func (p *Polygon) IsClosed() bool {
 }
 
 // Contains returns whether or not the current Polygon contains the passed in Point.
-func (p *Polygon) Contains(point *Point) bool {
+func (p Polygon) Contains(point Point) bool {
 	if !p.IsClosed() {
 		return false
 	}
@@ -58,10 +60,10 @@ func (p *Polygon) Contains(point *Point) bool {
 	start := len(p.points) - 1
 	end := 0
 
-	contains := p.intersectsWithRaycast(point, p.points[start], p.points[end])
+	contains := p.intersectsWithRaycast(point, &p.points[start], &p.points[end])
 
 	for i := 1; i < len(p.points); i++ {
-		if p.intersectsWithRaycast(point, p.points[i-1], p.points[i]) {
+		if p.intersectsWithRaycast(point, &p.points[i-1], &p.points[i]) {
 			contains = !contains
 		}
 	}
@@ -72,7 +74,7 @@ func (p *Polygon) Contains(point *Point) bool {
 // Using the raycast algorithm, this returns whether or not the passed in point
 // Intersects with the edge drawn by the passed in start and end points.
 // Original implementation: http://rosettacode.org/wiki/Ray-casting_algorithm#Go
-func (p *Polygon) intersectsWithRaycast(point *Point, start *Point, end *Point) bool {
+func (p *Polygon) intersectsWithRaycast(point Point, start *Point, end *Point) bool {
 	// Always ensure that the the first point
 	// has a y coordinate that is less than the second point
 	if start.lng > end.lng {

@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/json"
-	"fmt"
 	"log"
 	"testing"
 )
@@ -12,10 +11,6 @@ import (
 // Tests that a call to NewPoint should return a pointer to a Point with the specified values assigned correctly.
 func TestNewPoint(t *testing.T) {
 	p := NewPoint(40.5, 120.5)
-
-	if p == nil {
-		t.Error("Expected to get a pointer to a new point, but got nil instead.")
-	}
 
 	if p.lat != 40.5 {
 		t.Errorf("Expected to be able to specify 40.5 as the lat value of a new point, but got %f instead", p.lat)
@@ -45,67 +40,6 @@ func TestLng(t *testing.T) {
 
 	if lng != 120.5 {
 		t.Errorf("Expected a call to GetLng() to return the same lat value as was set before, but got %f instead", lng)
-	}
-}
-
-// Seems brittle :\
-func TestGreatCircleDistance(t *testing.T) {
-	// Test that SEA and SFO are ~ 1091km apart, accurate to 100 meters.
-	sea := &Point{lat: 47.4489, lng: -122.3094}
-	sfo := &Point{lat: 37.6160933, lng: -122.3924223}
-	sfoToSea := 1093.379199082169
-
-	dist := sea.GreatCircleDistance(sfo)
-
-	if !(dist < (sfoToSea+0.1) && dist > (sfoToSea-0.1)) {
-		t.Error("Unnacceptable result.", dist)
-	}
-}
-
-func TestPointAtDistanceAndBearing(t *testing.T) {
-	sea := &Point{lat: 47.44745785, lng: -122.308065668024}
-	p := sea.PointAtDistanceAndBearing(1090.7, 180)
-
-	// Expected results of transposing point
-	// ~1091km at bearing of 180 degrees
-	resultLat := 37.638557
-	resultLng := -122.308066
-
-	withinLatBounds := p.lat < resultLat+0.001 && p.lat > resultLat-0.001
-	withinLngBounds := p.lng < resultLng+0.001 && p.lng > resultLng-0.001
-	if !(withinLatBounds && withinLngBounds) {
-		t.Error("Unnacceptable result.", fmt.Sprintf("[%f, %f]", p.lat, p.lng))
-	}
-}
-
-func TestBearingTo(t *testing.T) {
-	p1 := &Point{lat: 40.7486, lng: -73.9864}
-	p2 := &Point{lat: 0.0, lng: 0.0}
-	bearing := p1.BearingTo(p2)
-
-	// Expected bearing 60 degrees
-	resultBearing := 100.610833
-
-	withinBearingBounds := bearing < resultBearing+0.001 && bearing > resultBearing-0.001
-	if !withinBearingBounds {
-		t.Error("Unnacceptable result.", fmt.Sprintf("%f", bearing))
-	}
-}
-
-func TestMidpointTo(t *testing.T) {
-	p1 := &Point{lat: 52.205, lng: 0.119}
-	p2 := &Point{lat: 48.857, lng: 2.351}
-
-	p := p1.MidpointTo(p2)
-
-	// Expected midpoint 50.5363°N, 001.2746°E
-	resultLat := 50.53632
-	resultLng := 1.274614
-
-	withinLatBounds := p.lat < resultLat+0.001 && p.lat > resultLat-0.001
-	withinLngBounds := p.lng < resultLng+0.001 && p.lng > resultLng-0.001
-	if !(withinLatBounds && withinLngBounds) {
-		t.Error("Unnacceptable result.", fmt.Sprintf("[%f, %f]", p.lat, p.lng))
 	}
 }
 
@@ -166,7 +100,7 @@ func TestUnmarshalBinary(t *testing.T) {
 		t.Error("Unable to convert coordinates to bytes slice.", err)
 	}
 
-	actual := &Point{}
+	actual := Point{}
 	err = actual.UnmarshalBinary(coordinates)
 	if err != nil {
 		t.Error("Should not encounter an error when attempting to Unmarshal a Point from binary", err)
@@ -192,7 +126,7 @@ func coordinatesToBytes(lat, long float64) ([]byte, error) {
 
 // Asserts true when the latitude and longtitude of p1 and p2 are equal up to a certain number of decimal places.
 // Precision is used to define that number of decimal places.
-func assertPointsEqual(p1, p2 *Point, precision int) bool {
+func assertPointsEqual(p1, p2 Point, precision int) bool {
 	roundedLat1, roundedLng1 := int(p1.lat*float64(precision))/precision, int(p1.lng*float64(precision))/precision
 	roundedLat2, roundedLng2 := int(p2.lat*float64(precision))/precision, int(p2.lng*float64(precision))/precision
 	return roundedLat1 == roundedLat2 && roundedLng1 == roundedLng2

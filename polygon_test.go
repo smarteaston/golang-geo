@@ -15,7 +15,7 @@ func TestPointInPolygon(t *testing.T) {
 	}
 
 	point := Point{lng: 114.9480600, lat: 4.9402900}
-	if !brunei.Contains(&point) {
+	if !brunei.Contains(point) {
 		t.Error("Expected the capital of Brunei to be in Brunei, but it wasn't.")
 	}
 }
@@ -57,35 +57,35 @@ func TestPointInPolygonWithHole(t *testing.T) {
 
 	// Look at two contours
 	canberra := Point{lng: 149.128684300000030000, lat: -35.2819998}
-	isnsw := nsw.Contains(&canberra)
-	isact := act.Contains(&canberra)
+	isnsw := nsw.Contains(canberra)
+	isact := act.Contains(canberra)
 	if !isnsw && !isact {
 		t.Error("Canberra should be in NSW and also in the sub-contour ACT state")
 	}
 
 	// Using NSW as a multi-contour polygon
-	nswmulti := &Polygon{}
+	nswmulti := Polygon{}
 	for _, p := range nsw.Points() {
-		nswmulti.Add(p)
+		nswmulti = nswmulti.Add(p)
 	}
 
 	for _, p := range act.Points() {
-		nswmulti.Add(p)
+		nswmulti = nswmulti.Add(p)
 	}
 
-	isnsw = nswmulti.Contains(&canberra)
+	isnsw = nswmulti.Contains(canberra)
 	if isnsw {
 		t.Error("Canberra should not be in NSW as it falls in the donut contour of the ACT")
 	}
 
 	sydney := Point{lng: 151.209, lat: -33.866}
 
-	if !nswmulti.Contains(&sydney) {
+	if !nswmulti.Contains(sydney) {
 		t.Error("Sydney should be in NSW")
 	}
 
 	losangeles := Point{lng: 118.28333, lat: 34.01667}
-	isnsw = nswmulti.Contains(&losangeles)
+	isnsw = nswmulti.Contains(losangeles)
 
 	if isnsw {
 		t.Error("Los Angeles should not be in NSW")
@@ -131,32 +131,32 @@ func TestEquatorGreenwichContains(t *testing.T) {
 // A test struct used to encapsulate and
 // Unmarshal JSON into.
 type testPoints struct {
-	Points []*Point
+	Points []Point
 }
 
 // Opens a JSON file and unmarshals the data into a Polygon
-func polygonFromFile(filename string) (*Polygon, error) {
-	p := &Polygon{}
+func polygonFromFile(filename string) (Polygon, error) {
+	p := Polygon{}
 	file, err := os.Open(filename)
 	if err != nil {
-		return nil, err
+		return Polygon{}, err
 	}
 
 	points := new(testPoints)
 	jsonParser := json.NewDecoder(file)
 	if err = jsonParser.Decode(&points); err != nil {
-		return nil, err
+		return Polygon{}, err
 	}
 
 	for _, point := range points.Points {
-		p.Add(point)
+		p = p.Add(point)
 	}
 
 	return p, nil
 }
 
 func TestPolygonNotClosed(t *testing.T) {
-	points := []*Point{
+	points := []Point{
 		NewPoint(0, 0), NewPoint(0, 1), //! NewPoint(1, 1), NewPoint(1, 0), if stricter rules for a closed polygon apply
 	}
 	poly := NewPolygon(points)
@@ -166,7 +166,7 @@ func TestPolygonNotClosed(t *testing.T) {
 }
 
 func TestPolygonClosed(t *testing.T) {
-	points := []*Point{
+	points := []Point{
 		NewPoint(0, 0), NewPoint(0, 1), NewPoint(1, 1), NewPoint(1, 0), NewPoint(0, 0),
 	}
 	poly := NewPolygon(points)
@@ -176,7 +176,7 @@ func TestPolygonClosed(t *testing.T) {
 }
 
 type testPoint struct {
-	P        *Point
+	P        Point
 	Expected bool
 }
 
@@ -188,7 +188,7 @@ func ntp(lat float64, lng float64, expectedOutput bool) (t testPoint) {
 }
 func TestPolygonSimple(t *testing.T) {
 	// A closed polygon - however the IsClosed() does not work properly.
-	polygonPoints := []*Point{
+	polygonPoints := []Point{
 		NewPoint(0, 0), NewPoint(0, 1), NewPoint(1, 1), NewPoint(1, 0), NewPoint(0, 0),
 	}
 
