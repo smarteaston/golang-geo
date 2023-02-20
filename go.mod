@@ -1,3 +1,3 @@
-module github.com/smarty/golang-geo
+module github.com/smarteaston/golang-geo
 
 go 1.19
