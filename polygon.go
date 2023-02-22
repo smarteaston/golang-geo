@@ -75,7 +75,7 @@ func (p Polygon) Contains(point Point) bool {
 // Intersects with the edge drawn by the passed in start and end points.
 // Original implementation: http://rosettacode.org/wiki/Ray-casting_algorithm#Go although
 // this implementation has bugs if the x point is equal to the x of the start.
-// As far as I can tell, the ray that is being cast is going straight up.
+// As far as I can tell, the ray that is being cast to the right
 func (p Polygon) intersectsWithRaycast(point Point, start *Point, end *Point) bool {
 	// Always ensure that the the first point
 	// has a y coordinate that is less than the second point
@@ -86,9 +86,16 @@ func (p Polygon) intersectsWithRaycast(point Point, start *Point, end *Point) bo
 
 	}
 
+	// this for loop avoids cases where the ray goes directly through a vertex
 	for point.lat == start.lat || point.lat == end.lat {
 		newLat := math.Nextafter(point.lat, math.Inf(1))
 		point = NewPoint(newLat, point.lng)
+	}
+
+	// Not a good way to fix this bug
+	for point.lng == start.lng {
+		newLng := math.Nextafter(point.lng, math.Inf(1))
+		point = NewPoint(point.lat, newLng)
 	}
 
 	// If we are outside of the polygon, indicate so.
@@ -115,9 +122,9 @@ func (p Polygon) intersectsWithRaycast(point Point, start *Point, end *Point) bo
 
 	// this is here to prevent points that share the same longitude value as the start.
 	// Unfortunately this also breaks points that are on the same line as the start point that are within the shape
-	if point.lng == start.lng {
-		return false
-	}
+	//if point.lng == start.lng && point.lng < start.lat {
+	//	return false
+	//}
 
 	raySlope := (point.lat - start.lat) / (point.lng - start.lng)
 	diagSlope := (end.lat - start.lat) / (end.lng - start.lng)
