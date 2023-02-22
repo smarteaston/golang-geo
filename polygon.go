@@ -73,49 +73,53 @@ func (p Polygon) Contains(point Point) bool {
 
 // Using the raycast algorithm, this returns whether or not the passed in point
 // Intersects with the edge drawn by the passed in start and end points.
-// Original implementation: http://rosettacode.org/wiki/Ray-casting_algorithm#Go
-func (p *Polygon) intersectsWithRaycast(point Point, start *Point, end *Point) bool {
+// Original implementation: http://rosettacode.org/wiki/Ray-casting_algorithm#Go although
+// this implementation has bugs if the x point is equal to the x of the start.
+// As far as I can tell, the ray that is being cast is going straight up.
+func (p Polygon) intersectsWithRaycast(point Point, start *Point, end *Point) bool {
 	// Always ensure that the the first point
 	// has a y coordinate that is less than the second point
-	if start.lng > end.lng {
+	if start.lat > end.lat {
 
 		// Switch the points if otherwise.
 		start, end = end, start
 
 	}
 
-	// Move the point's y coordinate
-	// outside of the bounds of the testing region
-	// so we can start drawing a ray
-	for point.lng == start.lng || point.lng == end.lng {
-		newLng := math.Nextafter(point.lng, math.Inf(1))
-		point = NewPoint(point.lat, newLng)
+	for point.lat == start.lat || point.lat == end.lat {
+		newLat := math.Nextafter(point.lat, math.Inf(1))
+		point = NewPoint(newLat, point.lng)
 	}
 
 	// If we are outside of the polygon, indicate so.
-	if point.lng < start.lng || point.lng > end.lng {
+	if point.lat < start.lat || point.lat > end.lat {
 		return false
 	}
 
-	if start.lat > end.lat {
-		if point.lat > start.lat {
+	if start.lng > end.lng {
+		if point.lng > start.lng {
 			return false
 		}
-		if point.lat < end.lat {
+		if point.lng < end.lng {
 			return true
 		}
 
 	} else {
-		if point.lat > end.lat {
+		if point.lng > end.lng {
 			return false
 		}
-		if point.lat < start.lat {
+		if point.lng < start.lng {
 			return true
 		}
 	}
 
-	raySlope := (point.lng - start.lng) / (point.lat - start.lat)
-	diagSlope := (end.lng - start.lng) / (end.lat - start.lat)
+	// this is here to prevent points that share the same longitude value as the start.
+	// Unfortunately this also breaks points that are on the same line as the start point that are within the shape
+	if point.lng == start.lng {
+		return false
+	}
 
+	raySlope := (point.lat - start.lat) / (point.lng - start.lng)
+	diagSlope := (end.lat - start.lat) / (end.lng - start.lng)
 	return raySlope >= diagSlope
 }
