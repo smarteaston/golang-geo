@@ -2,9 +2,7 @@
 
 package geo
 
-import (
-	"math"
-)
+import "math"
 
 // A Polygon is carved out of a 2D plane by a set of (possibly disjoint) contours.
 // It can thus contain holes, and can be self-intersecting.
@@ -50,12 +48,20 @@ func (p Polygon) Contains(point Point) bool {
 	if !p.IsClosed() {
 		return false
 	}
-	//// Look here for further options: https://github.com/kellydunn/golang-geo/pull/71#discussion_r303040014
-	//for _, p := range p.points {
-	//	if p.lat == point.lat && p.lng == point.lng {
-	//		return true
-	//	}
-	//}
+	// Look here for further options: https://github.com/kellydunn/golang-geo/pull/71#discussion_r303040014
+	for _, p := range p.points {
+		// this for loop avoids cases where the ray goes directly through a vertex
+		for point.lat == p.lat {
+			newLat := math.Nextafter(point.lat, math.Inf(1))
+			point = NewPoint(newLat, point.lng)
+		}
+
+		// move point so it isn't a vertex
+		for point.lng == p.lng {
+			newLng := math.Nextafter(point.lng, math.Inf(1))
+			point = NewPoint(point.lat, newLng)
+		}
+	}
 
 	start := len(p.points) - 1
 	end := 0
@@ -86,18 +92,6 @@ func (p Polygon) intersectsWithRaycast(point Point, start *Point, end *Point) bo
 
 	}
 
-	// this for loop avoids cases where the ray goes directly through a vertex
-	for point.lat == start.lat || point.lat == end.lat {
-		newLat := math.Nextafter(point.lat, math.Inf(1))
-		point = NewPoint(newLat, point.lng)
-	}
-
-	// Not a good way to fix this bug
-	for point.lng == start.lng || point.lng == end.lng {
-		newLng := math.Nextafter(point.lng, math.Inf(1))
-		point = NewPoint(point.lat, newLng)
-	}
-
 	// If we are outside of the polygon, indicate so.
 	if point.lat < start.lat || point.lat > end.lat {
 		return false
@@ -119,12 +113,6 @@ func (p Polygon) intersectsWithRaycast(point Point, start *Point, end *Point) bo
 			return true
 		}
 	}
-
-	// this is here to prevent points that share the same longitude value as the start.
-	// Unfortunately this also breaks points that are on the same line as the start point that are within the shape
-	//if point.lng == start.lng && point.lng < start.lat {
-	//	return false
-	//}
 
 	raySlope := (point.lat - start.lat) / (point.lng - start.lng)
 	diagSlope := (end.lat - start.lat) / (end.lng - start.lng)

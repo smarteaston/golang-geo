@@ -662,7 +662,7 @@ func TestPolygon_Contains(t *testing.T) {
 }
 
 func TestOnlyContainsInOne(t *testing.T) {
-	testPoint := NewPoint(27.251550, -80.383090)
+	testPoint := NewPoint(27.251377, -80.383091)
 	polygon1 := NewPolygon(
 		[]Point{
 			{27.240133, -80.383699},
@@ -926,4 +926,8 @@ func TestOnlyContainsInOne(t *testing.T) {
 	if result1 && result2 {
 		t.Error("Should not be contained in both")
 	}
+	if result1 || result2 {
+		return
+	}
+	t.Error("Should be in one shape")
 }
