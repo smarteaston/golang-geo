@@ -25,12 +25,12 @@ func NewPoint(lat float64, lng float64) Point {
 }
 
 // Lat returns Point p's latitude.
-func (p *Point) Lat() float64 {
+func (p Point) Lat() float64 {
 	return p.lat
 }
 
 // Lng returns Point p's longitude.
-func (p *Point) Lng() float64 {
+func (p Point) Lng() float64 {
 	return p.lng
 }
 

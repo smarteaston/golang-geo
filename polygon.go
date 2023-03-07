@@ -50,12 +50,12 @@ func (p Polygon) Contains(point Point) bool {
 	if !p.IsClosed() {
 		return false
 	}
-	// Look here for further options: https://github.com/kellydunn/golang-geo/pull/71#discussion_r303040014
-	for _, p := range p.points {
-		if p.lat == point.lat && p.lng == point.lng {
-			return true
-		}
-	}
+	//// Look here for further options: https://github.com/kellydunn/golang-geo/pull/71#discussion_r303040014
+	//for _, p := range p.points {
+	//	if p.lat == point.lat && p.lng == point.lng {
+	//		return true
+	//	}
+	//}
 
 	start := len(p.points) - 1
 	end := 0
@@ -93,7 +93,7 @@ func (p Polygon) intersectsWithRaycast(point Point, start *Point, end *Point) bo
 	}
 
 	// Not a good way to fix this bug
-	for point.lng == start.lng {
+	for point.lng == start.lng || point.lng == end.lng {
 		newLng := math.Nextafter(point.lng, math.Inf(1))
 		point = NewPoint(point.lat, newLng)
 	}
